@@ -34,7 +34,7 @@
         "doctrine/lexer": "^1.2|^2.0|^3.0",
         "doctrine/orm": "^2.9|^3.0",
         "doctrine/persistence": "^2.0|^3.0",
-        "fsi/files": "^2.0.4",
+        "fsi/files": "^2.0.4|^3.0@dev",
         "guzzlehttp/psr7": "^2.0",
         "monolog/monolog": "^1.25",
         "nyholm/psr7": "^1.4",
