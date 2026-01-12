@@ -11,7 +11,10 @@
             <argument type="service" id="FSi\Component\Translatable\Entity\TranslationLoader" />
             <argument type="service" id="FSi\Component\Translatable\Entity\TranslationUpdater" />
             <argument type="service" id="FSi\Component\Translatable\Entity\TranslationCleaner" />
-            <tag name="doctrine.event_subscriber" priority="100" />
+            <tag name="doctrine.event_listener" event="postLoad" priority="100" />
+            <tag name="doctrine.event_listener" event="preRemove" priority="100" />
+            <tag name="doctrine.event_listener" event="preFlush" priority="100" />
+            <tag name="doctrine.event_listener" event="onFlush" priority="100" />
         </service>
 
         <service id="FSi\Component\Translatable\Integration\Doctrine\ORM\TranslationManager">

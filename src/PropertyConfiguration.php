@@ -26,6 +26,8 @@ use function class_parents;
 use function method_exists;
 use function property_exists;
 
+use const PHP_VERSION_ID;
+
 final class PropertyConfiguration
 {
     /**
@@ -119,7 +121,9 @@ final class PropertyConfiguration
                 }
 
                 $this->propertyReflection = $reflectionClass->getProperty($this->propertyName);
-                $this->propertyReflection->setAccessible(true);
+                if (PHP_VERSION_ID < 80500) {
+                    $this->propertyReflection->setAccessible(true);
+                }
             } while ($reflectionClass = $reflectionClass->getParentClass());
         }
 
