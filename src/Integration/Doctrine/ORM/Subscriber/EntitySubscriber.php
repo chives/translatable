@@ -12,11 +12,9 @@ declare(strict_types=1);
 namespace FSi\Component\Translatable\Integration\Doctrine\ORM\Subscriber;
 
 use Assert\Assertion;
-use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PreFlushEventArgs;
-use Doctrine\ORM\Events;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\Proxy;
@@ -31,7 +29,7 @@ use function get_class;
 use function in_array;
 use function method_exists;
 
-final class EntitySubscriber implements EventSubscriber
+final class EntitySubscriber
 {
     private LocaleProvider $localeProvider;
     private ConfigurationResolver $entityConfigurationResolver;
@@ -51,14 +49,6 @@ final class EntitySubscriber implements EventSubscriber
         $this->translationLoader = $translationLoader;
         $this->translationUpdater = $translationUpdater;
         $this->translationCleaner = $translationCleaner;
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getSubscribedEvents(): array
-    {
-        return [Events::postLoad, Events::preRemove, Events::preFlush, Events::onFlush];
     }
 
     /**
