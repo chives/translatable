@@ -13,6 +13,7 @@ namespace FSi\Component\Translatable\Integration\Doctrine\ORM\Entity;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\EmbeddedClassMapping;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
@@ -21,6 +22,9 @@ use function get_class;
 use function mb_strlen;
 use function uksort;
 
+/**
+ * @phpstan-type EmbeddedMappingArray array{class: class-string, declaredField?: string|null, originalField: string}
+ */
 final class EmptyEmbeddableVerifier
 {
     private static ?PropertyAccessorInterface $propertyAccessor = null;
@@ -36,27 +40,40 @@ final class EmptyEmbeddableVerifier
         $allEmpty = true;
         foreach ($embeddedClassesData as $fieldName => $embeddedData) {
             /** @var class-string $embeddableClass */
-            $embeddableClass = $embeddedData['class'];
+            $embeddableClass = (true === $embeddedData instanceof EmbeddedClassMapping)
+                ? $embeddedData->class
+                : $embeddedData['class'];
             $embeddedMeta = $manager->getClassMetadata($embeddableClass);
             $embeddedParentMeta = $classMetadata;
             $embeddedParentObject = $translation;
+            $embeddedDeclaredField = (true === $embeddedData instanceof EmbeddedClassMapping)
+                ? $embeddedData->declaredField
+                : ($embeddedData['declaredField'] ?? null);
 
-            if (true === isset($embeddedData['declaredField'])) {
+            if (null !== $embeddedDeclaredField) {
                 $embeddedParentObject = self::getPropertyAccessor()->getValue(
                     $translation,
-                    $embeddedData['declaredField']
+                    $embeddedDeclaredField
                 );
 
                 if (null === $embeddedParentObject) {
                     continue;
                 }
 
-                $embeddedParentData = $embeddedClassesData[$embeddedData['declaredField']];
-                $embeddedParentMeta = $manager->getClassMetadata($embeddedParentData['class']);
-                $fieldName = $embeddedData['originalField'];
+                $embeddedParentData = $embeddedClassesData[$embeddedDeclaredField];
+                $embeddedParentClass = (true === $embeddedParentData instanceof EmbeddedClassMapping)
+                    ? $embeddedParentData->class
+                    : $embeddedParentData['class'];
+                $embeddedParentMeta = $manager->getClassMetadata($embeddedParentClass);
+                $fieldName = (true === $embeddedData instanceof EmbeddedClassMapping)
+                    ? $embeddedData->originalField
+                    : $embeddedData['originalField'];
             }
 
-            $embeddedObject = $embeddedParentMeta->getFieldValue($embeddedParentObject, $fieldName);
+            $embeddedObject = null;
+            if (null !== $fieldName) {
+                $embeddedObject = $embeddedParentMeta->getFieldValue($embeddedParentObject, $fieldName);
+            }
             if (null === $embeddedObject) {
                 continue;
             }
@@ -78,11 +95,14 @@ final class EmptyEmbeddableVerifier
         $embeddedClassesData = self::getAndSortEmbeddedDataByNestingLevel(
             self::getTranslationMetadata($manager, $translation)
         );
+        /** @var callable(EmbeddedClassMapping|EmbeddedMappingArray): class-string $embeddedMappingMapper */
+        $embeddedMappingMapper = static function (EmbeddedClassMapping|array $embeddedData): string {
+            return (true === $embeddedData instanceof EmbeddedClassMapping)
+                ? $embeddedData->class
+                : $embeddedData['class'];
+        };
 
-        return array_map(
-            static fn($embeddedData): string => $embeddedData['class'],
-            $embeddedClassesData
-        );
+        return array_map($embeddedMappingMapper, $embeddedClassesData);
     }
 
     /**
@@ -109,11 +129,11 @@ final class EmptyEmbeddableVerifier
 
     /**
      * @param ClassMetadata<object> $classMetadata
-     * @return array<string, array{ class: class-string, declaredField?: string|null, originalField: string }>
+     * @return array<string, EmbeddedClassMapping|EmbeddedMappingArray>
      */
     private static function getAndSortEmbeddedDataByNestingLevel(ClassMetadata $classMetadata): array
     {
-        /** @var array<string, array{ class: class-string, declaredField?: string|null, originalField: string }> $data */
+        /** @var array<string, EmbeddedClassMapping|EmbeddedMappingArray> $data */
         $data = $classMetadata->embeddedClasses;
         // Example data ["fieldName" => [], "fieldName.nestedFieldName" => []]
         uksort(

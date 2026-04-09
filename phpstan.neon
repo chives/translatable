@@ -30,3 +30,7 @@ parameters:
             message: '#.*Symfony\\Component\\Routing\\RouteCollectionBuilder.*#'
             path: '%currentWorkingDirectory%/tests/_support/project/src/Kernel.php'
             reportUnmatched: false
+        -
+            message: '#Doctrine\\ORM\\Mapping\\EmbeddedClassMapping( not found)?#'
+            path: '%currentWorkingDirectory%/src/Integration/Doctrine/ORM/Entity/EmptyEmbeddableVerifier.php'
+            reportUnmatched: false
