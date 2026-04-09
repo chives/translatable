@@ -29,7 +29,7 @@
         "codeception/module-asserts": "^3.0",
         "codeception/module-doctrine": "^3.1",
         "codeception/module-symfony": "*",
-        "doctrine/dbal": "^3.4",
+        "doctrine/dbal": "^3.4|^4.0",
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/lexer": "^1.2|^2.0|^3.0",
         "doctrine/orm": "^2.13|^3.0",
